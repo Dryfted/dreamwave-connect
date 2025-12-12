@@ -1,0 +1,26 @@
+name: Minimal Test
+
+on:
+  push:
+    tags:
+      - 'minimal-*'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install deps and build
+        run: |
+          npm install
+          npx electron-builder --linux --publish=never
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-build
+          path: dist/

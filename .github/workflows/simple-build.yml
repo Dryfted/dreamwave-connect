@@ -1,0 +1,99 @@
+name: Simple Distribution Build
+
+on:
+  push:
+    tags:
+      - 'simple-*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            platform: mac
+          - os: windows-latest
+            platform: win
+          - os: ubuntu-latest
+            platform: linux
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Electron
+        run: npm install electron@22.3.27
+
+      - name: Create package structure
+        shell: bash
+        run: |
+          mkdir -p package/dreamwave-connect
+          cp main.js package/dreamwave-connect/
+          cp index.html package/dreamwave-connect/
+          cp package.json package/dreamwave-connect/
+          mkdir -p package/dreamwave-connect/node_modules
+          cp -r node_modules/electron package/dreamwave-connect/node_modules/
+
+      - name: Create launcher scripts (Unix)
+        if: matrix.platform != 'win'
+        run: |
+          cat > package/dreamwave-connect/dreamwave-connect << 'EOF'
+          #!/bin/bash
+          DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+          "$DIR/node_modules/electron/dist/electron" "$DIR"
+          EOF
+          chmod +x package/dreamwave-connect/dreamwave-connect
+
+      - name: Create launcher scripts (Windows)
+        if: matrix.platform == 'win'
+        run: |
+          echo '@echo off' > package/dreamwave-connect/dreamwave-connect.bat
+          echo 'cd /d "%~dp0"' >> package/dreamwave-connect/dreamwave-connect.bat
+          echo 'node_modules\electron\dist\electron.exe .' >> package/dreamwave-connect/dreamwave-connect.bat
+
+      - name: Create archive (Unix)
+        if: matrix.platform != 'win'
+        run: |
+          cd package
+          tar -czf dreamwave-connect-${{ matrix.platform }}.tar.gz dreamwave-connect/
+
+      - name: Create archive (Windows)
+        if: matrix.platform == 'win'
+        run: |
+          cd package
+          Compress-Archive -Path dreamwave-connect -DestinationPath dreamwave-connect-${{ matrix.platform }}.zip
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dreamwave-connect-${{ matrix.platform }}
+          path: |
+            package/*.tar.gz
+            package/*.zip
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: artifacts/**/*
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
