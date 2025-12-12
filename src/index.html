@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src *;">
+  <title>DreamWave Connect</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: transparent;
+      color: white;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .app {
+      width: 480px;
+      height: 680px;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16162a 50%, #0f0f1a 100%);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Title Bar */
+    .title-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      -webkit-app-region: drag;
+      background: rgba(0, 0, 0, 0.2);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .title-bar-buttons {
+      display: flex;
+      gap: 8px;
+      -webkit-app-region: no-drag;
+    }
+
+    .title-bar-btn {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .title-bar-btn:hover { opacity: 0.8; }
+    .btn-close { background: #ff5f57; }
+    .btn-minimize { background: #febc2e; }
+    .btn-maximize { background: #28c840; opacity: 0.5; cursor: default; }
+
+    .title-bar-text {
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    /* Content */
+    .content {
+      flex: 1;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .logo {
+      width: 72px;
+      height: 72px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #E855A0, #F5A623);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      box-shadow: 0 8px 32px rgba(232, 85, 160, 0.3);
+    }
+
+    .logo svg {
+      width: 36px;
+      height: 36px;
+      color: white;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #E855A0, #F5A623);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.6);
+      line-height: 1.5;
+    }
+
+    /* Login Section */
+    .login-section {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .login-section label {
+      display: block;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .login-section input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(0, 0, 0, 0.3);
+      color: white;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .login-section input:focus {
+      border-color: rgba(232, 85, 160, 0.5);
+    }
+
+    .login-section input::placeholder {
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Provider Cards */
+    .providers {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      flex: 1;
+    }
+
+    .provider-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .provider-card.connected {
+      border-color: rgba(34, 197, 94, 0.3);
+      background: rgba(34, 197, 94, 0.05);
+    }
+
+    .provider-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .provider-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .provider-icon.claude {
+      background: linear-gradient(135deg, #D97706, #F59E0B);
+    }
+
+    .provider-icon.codex {
+      background: linear-gradient(135deg, #059669, #10B981);
+    }
+
+    .provider-icon svg {
+      width: 24px;
+      height: 24px;
+      color: white;
+    }
+
+    .provider-info h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .provider-info p {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .provider-status {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .status-dot.connected { background: #22c55e; }
+    .status-dot.disconnected { background: #6b7280; }
+    .status-dot.loading { background: #f59e0b; animation: pulse 1s infinite; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .provider-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #E855A0, #F5A623);
+      color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px rgba(232, 85, 160, 0.4);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-success {
+      background: rgba(34, 197, 94, 0.2);
+      color: #22c55e;
+    }
+
+    .btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Progress */
+    .progress-message {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      margin-top: 12px;
+      padding: 10px 12px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      font-family: monospace;
+      max-height: 60px;
+      overflow-y: auto;
+    }
+
+    /* Footer */
+    .footer {
+      padding: 16px 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      text-align: center;
+    }
+
+    .footer p {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .footer a {
+      color: rgba(232, 85, 160, 0.8);
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      color: #E855A0;
+    }
+
+    /* Spinner */
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* All Connected Banner */
+    .all-connected {
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(16, 185, 129, 0.1));
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .all-connected svg {
+      width: 24px;
+      height: 24px;
+      color: #22c55e;
+    }
+
+    .all-connected-text h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #22c55e;
+      margin-bottom: 2px;
+    }
+
+    .all-connected-text p {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Title Bar -->
+    <div class="title-bar">
+      <div class="title-bar-buttons">
+        <button class="title-bar-btn btn-close" onclick="window.dreamwave.close()"></button>
+        <button class="title-bar-btn btn-minimize" onclick="window.dreamwave.minimize()"></button>
+        <button class="title-bar-btn btn-maximize"></button>
+      </div>
+      <span class="title-bar-text">DreamWave Connect</span>
+      <div style="width: 52px;"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+      <!-- Header -->
+      <div class="header">
+        <div class="logo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+        </div>
+        <h1>DreamWave Connect</h1>
+        <p>Link your AI subscriptions to unlock<br>powerful terminal agents in DreamWave</p>
+      </div>
+
+      <!-- User ID Section -->
+      <div class="login-section">
+        <label>Your DreamWave User ID</label>
+        <input type="text" id="userId" placeholder="Enter your user ID from DreamWave">
+      </div>
+
+      <!-- All Connected Banner (hidden by default) -->
+      <div class="all-connected" id="allConnected" style="display: none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <div class="all-connected-text">
+          <h4>All Connected!</h4>
+          <p>Your AI accounts are synced to DreamWave</p>
+        </div>
+      </div>
+
+      <!-- Provider Cards -->
+      <div class="providers">
+        <!-- Claude Card -->
+        <div class="provider-card" id="claudeCard">
+          <div class="provider-header">
+            <div class="provider-icon claude">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                <path d="M2 17l10 5 10-5"></path>
+                <path d="M2 12l10 5 10-5"></path>
+              </svg>
+            </div>
+            <div class="provider-info">
+              <h3>Claude</h3>
+              <p>Anthropic AI Assistant</p>
+            </div>
+            <div class="provider-status" id="claudeStatus">
+              <span class="status-dot disconnected"></span>
+              <span>Not Connected</span>
+            </div>
+          </div>
+          <div class="provider-actions">
+            <button class="btn btn-primary" id="claudeConnectBtn" onclick="connectProvider('claude')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                <polyline points="10 17 15 12 10 7"></polyline>
+                <line x1="15" y1="12" x2="3" y2="12"></line>
+              </svg>
+              Connect
+            </button>
+            <button class="btn btn-secondary" id="claudeSyncBtn" onclick="syncProvider('claude')" style="display: none;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+              </svg>
+              Sync
+            </button>
+          </div>
+          <div class="progress-message" id="claudeProgress" style="display: none;"></div>
+        </div>
+
+        <!-- Codex Card -->
+        <div class="provider-card" id="codexCard">
+          <div class="provider-header">
+            <div class="provider-icon codex">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                <polyline points="2 17 12 22 22 17"></polyline>
+                <polyline points="2 12 12 17 22 12"></polyline>
+              </svg>
+            </div>
+            <div class="provider-info">
+              <h3>Codex</h3>
+              <p>OpenAI ChatGPT</p>
+            </div>
+            <div class="provider-status" id="codexStatus">
+              <span class="status-dot disconnected"></span>
+              <span>Not Connected</span>
+            </div>
+          </div>
+          <div class="provider-actions">
+            <button class="btn btn-primary" id="codexConnectBtn" onclick="connectProvider('codex')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                <polyline points="10 17 15 12 10 7"></polyline>
+                <line x1="15" y1="12" x2="3" y2="12"></line>
+              </svg>
+              Connect
+            </button>
+            <button class="btn btn-secondary" id="codexSyncBtn" onclick="syncProvider('codex')" style="display: none;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+              </svg>
+              Sync
+            </button>
+          </div>
+          <div class="progress-message" id="codexProgress" style="display: none;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>Credentials are encrypted and stored securely.<br><a href="#" onclick="window.dreamwave.openExternal('https://dreamwave.app/privacy')">Privacy Policy</a></p>
+    </div>
+  </div>
+
+  <script>
+    // State
+    let status = { claude: {}, codex: {} };
+
+    // Initialize
+    async function init() {
+      // Load saved user ID
+      const savedUserId = localStorage.getItem('dreamwave_user_id');
+      if (savedUserId) {
+        document.getElementById('userId').value = savedUserId;
+      }
+
+      // Listen for OAuth progress
+      window.dreamwave.onOAuthProgress((data) => {
+        const progressEl = document.getElementById(`${data.provider}Progress`);
+        if (progressEl) {
+          progressEl.style.display = 'block';
+          progressEl.textContent = data.message;
+        }
+      });
+
+      // Check initial status
+      await checkStatus();
+    }
+
+    async function checkStatus() {
+      try {
+        status = await window.dreamwave.getStatus();
+        updateUI();
+      } catch (error) {
+        console.error('Failed to check status:', error);
+      }
+    }
+
+    function updateUI() {
+      // Update Claude
+      updateProviderUI('claude', status.claude);
+
+      // Update Codex
+      updateProviderUI('codex', status.codex);
+
+      // Show all connected banner
+      const allConnected = status.claude.authenticated && status.codex.authenticated;
+      document.getElementById('allConnected').style.display = allConnected ? 'flex' : 'none';
+    }
+
+    function updateProviderUI(provider, data) {
+      const card = document.getElementById(`${provider}Card`);
+      const statusEl = document.getElementById(`${provider}Status`);
+      const connectBtn = document.getElementById(`${provider}ConnectBtn`);
+      const syncBtn = document.getElementById(`${provider}SyncBtn`);
+
+      if (data.authenticated) {
+        card.classList.add('connected');
+        statusEl.innerHTML = `<span class="status-dot connected"></span><span>Connected</span>`;
+        connectBtn.innerHTML = `
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          Connected
+        `;
+        connectBtn.classList.remove('btn-primary');
+        connectBtn.classList.add('btn-success');
+        syncBtn.style.display = 'flex';
+      } else if (data.installed) {
+        statusEl.innerHTML = `<span class="status-dot disconnected"></span><span>CLI Ready</span>`;
+        connectBtn.innerHTML = `
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+            <polyline points="10 17 15 12 10 7"></polyline>
+            <line x1="15" y1="12" x2="3" y2="12"></line>
+          </svg>
+          Sign In
+        `;
+      } else {
+        statusEl.innerHTML = `<span class="status-dot disconnected"></span><span>Not Installed</span>`;
+        connectBtn.innerHTML = `
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Install & Connect
+        `;
+      }
+    }
+
+    async function connectProvider(provider) {
+      const connectBtn = document.getElementById(`${provider}ConnectBtn`);
+      const progressEl = document.getElementById(`${provider}Progress`);
+      const statusEl = document.getElementById(`${provider}Status`);
+
+      // Save user ID
+      const userId = document.getElementById('userId').value.trim();
+      if (userId) {
+        localStorage.setItem('dreamwave_user_id', userId);
+      }
+
+      // Show loading state
+      connectBtn.disabled = true;
+      connectBtn.innerHTML = `<div class="spinner"></div> Working...`;
+      statusEl.innerHTML = `<span class="status-dot loading"></span><span>Connecting...</span>`;
+      progressEl.style.display = 'block';
+      progressEl.textContent = 'Checking CLI installation...';
+
+      try {
+        // Check if CLI is installed
+        const currentStatus = await window.dreamwave.getStatus();
+
+        if (!currentStatus[provider].installed) {
+          progressEl.textContent = `Installing ${provider === 'claude' ? 'Claude' : 'Codex'} CLI...`;
+
+          const installResult = await window.dreamwave.installCLI(provider);
+          if (!installResult.success) {
+            throw new Error(installResult.error || 'Installation failed');
+          }
+
+          progressEl.textContent = 'CLI installed successfully!';
+        }
+
+        // Run OAuth flow
+        progressEl.textContent = 'Opening browser for authentication...';
+        const oauthResult = await window.dreamwave.startOAuth(provider);
+
+        if (!oauthResult.success) {
+          throw new Error(oauthResult.error || 'Authentication failed');
+        }
+
+        progressEl.textContent = 'Authentication successful!';
+
+        // Sync to DreamWave if user ID provided
+        if (userId) {
+          progressEl.textContent = 'Syncing to DreamWave...';
+          const syncResult = await window.dreamwave.syncCredentials(userId, provider);
+
+          if (syncResult.success) {
+            progressEl.textContent = 'Synced to DreamWave!';
+          } else {
+            progressEl.textContent = 'Connected locally. Sync manually if needed.';
+          }
+        }
+
+        // Update UI
+        await checkStatus();
+
+      } catch (error) {
+        console.error('Connection error:', error);
+        progressEl.textContent = `Error: ${error.message}`;
+        statusEl.innerHTML = `<span class="status-dot disconnected"></span><span>Error</span>`;
+      } finally {
+        connectBtn.disabled = false;
+        await checkStatus();
+      }
+    }
+
+    async function syncProvider(provider) {
+      const userId = document.getElementById('userId').value.trim();
+      if (!userId) {
+        alert('Please enter your DreamWave User ID');
+        return;
+      }
+
+      localStorage.setItem('dreamwave_user_id', userId);
+
+      const syncBtn = document.getElementById(`${provider}SyncBtn`);
+      const progressEl = document.getElementById(`${provider}Progress`);
+
+      syncBtn.disabled = true;
+      syncBtn.innerHTML = `<div class="spinner"></div>`;
+      progressEl.style.display = 'block';
+      progressEl.textContent = 'Syncing credentials...';
+
+      try {
+        const result = await window.dreamwave.syncCredentials(userId, provider);
+
+        if (result.success) {
+          progressEl.textContent = 'Synced successfully!';
+        } else {
+          progressEl.textContent = `Sync failed: ${result.error}`;
+        }
+      } catch (error) {
+        progressEl.textContent = `Error: ${error.message}`;
+      } finally {
+        syncBtn.disabled = false;
+        syncBtn.innerHTML = `
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+          </svg>
+          Sync
+        `;
+      }
+    }
+
+    // Initialize on load
+    init();
+  </script>
+</body>
+</html>
