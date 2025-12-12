@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>DreamWave Connect</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        .status {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        button {
+            background: #fff;
+            color: #667eea;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: 600;
+        }
+        button:hover {
+            background: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>DreamWave Connect</h1>
+        <p>Connect your Claude and Codex subscriptions to DreamWave</p>
+
+        <div class="status">
+            <h3>Claude CLI Status</h3>
+            <p id="claude-status">Checking...</p>
+            <button onclick="installClaude()">Install Claude CLI</button>
+            <button onclick="loginClaude()">Login to Claude</button>
+        </div>
+
+        <div class="status">
+            <h3>Codex CLI Status</h3>
+            <p id="codex-status">Checking...</p>
+            <button onclick="installCodex()">Install Codex CLI</button>
+            <button onclick="loginCodex()">Login to Codex</button>
+        </div>
+
+        <button onclick="syncCredentials()">Sync to DreamWave</button>
+    </div>
+
+    <script>
+        function installClaude() {
+            alert('Installing Claude CLI...');
+        }
+
+        function loginClaude() {
+            alert('Opening Claude login...');
+        }
+
+        function installCodex() {
+            alert('Installing Codex CLI...');
+        }
+
+        function loginCodex() {
+            alert('Opening Codex login...');
+        }
+
+        function syncCredentials() {
+            alert('Syncing credentials to DreamWave...');
+        }
+
+        // Update status on load
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('claude-status').textContent = 'Ready for setup';
+            document.getElementById('codex-status').textContent = 'Ready for setup';
+        });
+    </script>
+</body>
+</html>
