@@ -27,22 +27,17 @@
     },
     "files": [
       "src/**/*",
-      "assets/**/*",
       "node_modules/**/*"
     ],
     "mac": {
       "category": "public.app-category.developer-tools",
-      "target": ["dmg", "zip"]
+      "target": "dmg"
     },
     "win": {
-      "target": ["nsis", "portable"]
+      "target": "portable"
     },
     "linux": {
-      "target": ["AppImage", "deb"]
-    },
-    "nsis": {
-      "oneClick": true,
-      "allowToChangeInstallationDirectory": false
+      "target": "AppImage"
     }
   }
 }
