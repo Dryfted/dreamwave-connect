@@ -13,8 +13,12 @@
   "author": "DreamWave",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^22.0.0",
-    "electron-builder": "^24.6.4"
+    "electron": "22.3.27",
+    "electron-builder": "24.6.4"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
   },
   "build": {
     "appId": "com.dreamwave.connect",
