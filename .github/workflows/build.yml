@@ -55,10 +55,29 @@ jobs:
         with:
           path: artifacts
 
+      - name: List downloaded artifacts
+        run: find artifacts -type f -name "*.dmg" -o -name "*.exe" -o -name "*.deb" | head -10
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: artifacts/**/*
+          files: |
+            artifacts/**/*.dmg
+            artifacts/**/*.exe
+            artifacts/**/*.deb
           generate_release_notes: true
+          name: "DreamWave Connect ${{ github.ref_name }}"
+          body: |
+            One-click desktop app for connecting Claude and Codex to DreamWave.
+
+            ## Features
+            - Guided OAuth setup for Claude Code CLI
+            - Automatic credential management
+            - Cross-platform support (macOS, Windows, Linux)
+
+            ## Installation
+            1. Download the appropriate file for your platform
+            2. Install and run DreamWave Connect
+            3. Follow the guided setup to connect your AI accounts
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
