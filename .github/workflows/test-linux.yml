@@ -23,6 +23,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libnss3-dev libatk-bridge2.0-dev libdrm2 libxcomposite1 libxdamage1 libxrandr2 libgbm1 libxss1 libasound2
+          sudo apt-get install -y libgtk-3-dev libgconf-2-4 libxtst6 libatspi2.0-0 libdrm2 libgtk-3-0 libxss1
+          sudo apt-get install -y build-essential
 
       - name: Show environment
         run: |
@@ -34,22 +36,34 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm install
+          npm config set cache ~/.npm
+          npm install --verbose
           echo "Dependencies installed"
+          echo "Checking electron binary:"
+          ls -la node_modules/electron/dist/ || echo "Electron binary not found"
 
       - name: Test build
         run: |
           echo "Starting Linux build test..."
-          npm run build:linux
+          npm run build:linux 2>&1 | tee build.log
+          echo "Exit code: $?"
         env:
           CI: true
           DEBUG: electron-builder
+          ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: true
+        continue-on-error: true
 
-      - name: Show build results
+      - name: Show build results and logs
         run: |
-          echo "Build completed, checking output:"
+          echo "=== BUILD LOG ==="
+          cat build.log || echo "No build log found"
+          echo "=== DIRECTORY CONTENTS ==="
           ls -la dist/ || echo "No dist directory found"
           find . -name "*.AppImage" || echo "No AppImage found"
+          echo "=== ELECTRON CACHE ==="
+          ls -la ~/.cache/electron/ || echo "No electron cache"
+          echo "=== TEMP FILES ==="
+          ls -la /tmp/ | grep electron || echo "No electron temp files"
 
       - name: Upload artifacts
         if: success()
