@@ -1,0 +1,59 @@
+name: Test Linux Build Only
+
+on:
+  push:
+    tags:
+      - 'test-*'
+  workflow_dispatch:
+
+jobs:
+  test-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libnss3-dev libatk-bridge2.0-dev libdrm2 libxcomposite1 libxdamage1 libxrandr2 libgbm1 libxss1 libasound2
+
+      - name: Show environment
+        run: |
+          echo "Node version: $(node --version)"
+          echo "NPM version: $(npm --version)"
+          echo "Current directory: $(pwd)"
+          echo "Files:"
+          ls -la
+
+      - name: Install dependencies
+        run: |
+          npm install
+          echo "Dependencies installed"
+
+      - name: Test build
+        run: |
+          echo "Starting Linux build test..."
+          npm run build:linux
+        env:
+          CI: true
+          DEBUG: electron-builder
+
+      - name: Show build results
+        run: |
+          echo "Build completed, checking output:"
+          ls -la dist/ || echo "No dist directory found"
+          find . -name "*.AppImage" || echo "No AppImage found"
+
+      - name: Upload artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-test-build
+          path: dist/

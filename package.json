@@ -1,8 +1,9 @@
 {
   "name": "dreamwave-connect",
-  "version": "1.0.3",
+  "version": "1.2.0",
   "description": "Connect your Claude and Codex subscriptions to DreamWave",
   "main": "main.js",
+  "homepage": "https://dreamwave.app",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder",
@@ -10,19 +11,23 @@
     "build:win": "electron-builder --win",
     "build:linux": "electron-builder --linux"
   },
-  "author": "DreamWave",
+  "author": {
+    "name": "DreamWave",
+    "email": "support@dreamwave.app"
+  },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Dryfted/dreamwave-connect"
+  },
   "devDependencies": {
     "electron": "22.3.27",
     "electron-builder": "24.6.4"
   },
-  "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=8.0.0"
-  },
   "build": {
     "appId": "com.dreamwave.connect",
     "productName": "DreamWave Connect",
+    "compression": "normal",
     "directories": {
       "output": "dist"
     },
@@ -31,14 +36,31 @@
       "index.html",
       "package.json"
     ],
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        }
+      ],
+      "category": "Utility"
+    },
     "mac": {
-      "target": "dmg"
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "category": "public.app-category.developer-tools"
     },
     "win": {
-      "target": "portable"
-    },
-    "linux": {
-      "target": "AppImage"
+      "target": [
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ]
     }
   }
 }
